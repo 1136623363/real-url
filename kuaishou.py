@@ -14,17 +14,18 @@ class KuaiShou:
 
     def get_real_url(self):
         headers = {
-            'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 '
-                          '(KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
-            'cookie': 'did=web_d563dca728d28b00336877723e0359ed'}
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
+            # 'cookie': 'did=web_d563dca728d28b00336877723e0359ed',
+        }
         with requests.Session() as s:
-            res = s.get('https://m.gifshow.com/fw/live/{}'.format(self.rid), headers=headers)
-            livestream = re.search(r'liveStream":(.*),"obfuseData', res.text)
+            url = 'https://live.kuaishou.com/u/{}'.format(self.rid)
+            res = s.get(url, headers=headers)
+            livestream = re.search(r'liveStream":(.*),"author', res.text)
             if livestream:
                 livestream = json.loads(livestream.group(1))
-                *_, hlsplayurls = livestream['multiResolutionHlsPlayUrls']
-                urls, = hlsplayurls['urls']
-                url = urls['url']
+                *_, hlsplayurls = livestream['playUrls']
+                url = hlsplayurls['adaptationSet']['representation'][-1]['url']
+
                 return url
             else:
                 raise Exception('直播间不存在或未开播')
